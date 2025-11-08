@@ -1,0 +1,8 @@
+REC python:3.12
+LOC /app
+BY requirements.txt /app/
+DO pip install -r requirements.txt
+BY . /app
+SPA 8000
+GO ["python", "main.py"]
+
