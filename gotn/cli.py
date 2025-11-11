@@ -84,7 +84,7 @@ def cmd_send(args):
             with open(file, "rb") as fobj:
                 res = requests.post(API+"/push",
                     headers={"Authorization": f"Bearer {token}"},
-                    files={"file": fobj},
+                    files={"files": fobj},
                     data={"name": pkg_name, "version": version, "path": file})
                 safe_print_response(res)
     else:
