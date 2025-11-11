@@ -81,8 +81,6 @@ def cmd_lest(args):
         print(f"[gopuTN] ❌ Package '{pkg}' introuvable, fais 'gotn draw {pkg}' d'abord")
         return
     print(f"[gopuTN] ℹ️ Exécution du package '{pkg}'...")
-    # Ici tu peux définir comment exécuter ton package
-    # Exemple: si c’est du JS
     os.system(f"node {path}")
 
 def cmd_const(args):
@@ -107,6 +105,35 @@ def cmd_const(args):
     with open(out, "w") as f:
         json.dump(manifest, f, indent=2)
     print(f"[gopuTN] ✅ Manifest généré: {out}")
+
+def cmd_let(args):
+    """Exécute un manifest JSON généré par const"""
+    infile = args.file
+    manifest = infile.replace(".gopuTN", ".json")
+    if not os.path.exists(manifest):
+        print("[gopuTN] ❌ Manifest introuvable, fais 'gotn const' d'abord")
+        return
+
+    with open(manifest) as f:
+        data = json.load(f)
+
+    print("[gopuTN] ℹ️ Exécution du manifest...")
+    for entry in data["commands"]:
+        cmd = entry["cmd"]
+        arg = entry["arg"]
+        print(f" → {cmd} {arg}")
+        if cmd == "DO":
+            os.system(arg)
+        elif cmd == "NET":
+            print(f"[gopuTN] 🌐 Port exposé: {arg}")
+        elif cmd == "REC":
+            print(f"[gopuTN] 📦 Base image: {arg}")
+        elif cmd == "LOC":
+            print(f"[gopuTN] 📂 Workdir: {arg}")
+        elif cmd == "BY":
+            print(f"[gopuTN] 📥 Copie: {arg}")
+        elif cmd == "GO":
+            os.system(" ".join(json.loads(arg)))
 
 # ---------------------------
 # Main
@@ -142,10 +169,15 @@ def main():
     p_lest.add_argument("package")
     p_lest.set_defaults(func=cmd_lest)
 
-    # const (transpile *.gopuTN)
+    # const
     p_const = subparsers.add_parser("const")
     p_const.add_argument("file")
     p_const.set_defaults(func=cmd_const)
+
+    # let
+    p_let = subparsers.add_parser("let")
+    p_let.add_argument("file")
+    p_let.set_defaults(func=cmd_let)
 
     args = parser.parse_args()
     if hasattr(args, "func"):
