@@ -66,13 +66,32 @@ def cmd_send(args):
     if not token:
         print("[gopuTN] ❌ Aucun token trouvé, fais 'gotn login' d'abord")
         return
-    print(f"[gopuTN] ℹ️ Publication du package '{args.package}'...")
-    with open(args.file, "rb") as f:
-        res = requests.post(API+"/push",
-            headers={"Authorization": f"Bearer {token}"},
-            files={"file": f},
-            data={"name": args.package})
-    print(res.json())
+
+    if os.path.exists("gotn.json"):
+        with open("gotn.json") as f:
+            config = json.load(f)
+        pkg_name = config["name"]
+        version = config["version"]
+        files = config["files"]
+        print(f"[gopuTN] ℹ️ Publication du package '{pkg_name}:{version}' avec {len(files)} fichiers...")
+        for file in files:
+            if not os.path.exists(file):
+                print(f"[gopuTN] ❌ Fichier introuvable: {file}")
+                continue
+            with open(file, "rb") as fobj:
+                res = requests.post(API+"/push",
+                    headers={"Authorization": f"Bearer {token}"},
+                    files={"file": fobj},
+                    data={"name": pkg_name, "version": version, "path": file})
+                print(res.json())
+    else:
+        print(f"[gopuTN] ℹ️ Publication du package '{args.package}'...")
+        with open(args.file, "rb") as f:
+            res = requests.post(API+"/push",
+                headers={"Authorization": f"Bearer {token}"},
+                files={"file": f},
+                data={"name": args.package})
+        print(res.json())
 
 def cmd_lest(args):
     pkg = args.package
@@ -127,13 +146,38 @@ def cmd_let(args):
         elif cmd == "NET":
             print(f"[gopuTN] 🌐 Port exposé: {arg}")
         elif cmd == "REC":
-            print(f"[gopuTN] 📦 Base image: {arg}")
+            if arg.startswith("gotn:"):
+                env_name = arg.split(":")[1]
+                version = arg.split(":")[2] if len(arg.split(":")) > 2 else "latest"
+                print(f"[gopuTN] 📦 Environnement gopHub: {env_name}:{version}")
+                res = requests.get(f"{API}/pull/{env_name}-{version}")
+                if res.ok:
+                    env_path = os.path.join(IMAGES_DIR, f"{env_name}-{version}")
+                    ensure_dir(env_path)
+                    with open(os.path.join(env_path, f"{env_name}.env"), "wb") as f:
+                        f.write(res.content)
+                    print(f"[gopuTN] ✅ Environnement {env_name}:{version} installé")
+                else:
+                    print("[gopuTN] ❌ Impossible de récupérer l'environnement:", res.text)
+            else:
+                print(f"[gopuTN] 📦 Base image: {arg}")
         elif cmd == "LOC":
             print(f"[gopuTN] 📂 Workdir: {arg}")
         elif cmd == "BY":
             print(f"[gopuTN] 📥 Copie: {arg}")
         elif cmd == "GO":
             os.system(" ".join(json.loads(arg)))
+
+def cmd_init(args):
+    """Crée un fichier gotn.json listant les fichiers à publier"""
+    config = {
+        "name": args.name,
+        "version": args.version,
+        "files": args.files
+    }
+    with open("gotn.json", "w") as f:
+        json.dump(config, f, indent=2)
+    print("[gopuTN] ✅ Fichier gotn.json créé")
 
 # ---------------------------
 # Main
@@ -160,8 +204,8 @@ def main():
 
     # send
     p_send = subparsers.add_parser("send")
-    p_send.add_argument("package")
-    p_send.add_argument("file")
+    p_send.add_argument("package", nargs="?")
+    p_send.add_argument("file", nargs="?")
     p_send.set_defaults(func=cmd_send)
 
     # lest
@@ -178,6 +222,13 @@ def main():
     p_let = subparsers.add_parser("let")
     p_let.add_argument("file")
     p_let.set_defaults(func=cmd_let)
+
+    # init
+    p_init = subparsers.add_parser("init")
+    p_init.add_argument("name")
+    p_init.add_argument("version")
+    p_init.add_argument("files", nargs="+")
+    p_init.set_defaults(func=cmd_init)
 
     args = parser.parse_args()
     if hasattr(args, "func"):
