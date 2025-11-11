@@ -27,6 +27,12 @@ def load_token():
 def ensure_dir(path):
     os.makedirs(path, exist_ok=True)
 
+def safe_print_response(res):
+    try:
+        print(res.json())
+    except ValueError:
+        print("[gopuTN] ℹ️ Réponse brute du serveur:", res.text)
+
 # ---------------------------
 # Commandes CLI
 # ---------------------------
@@ -42,10 +48,7 @@ def cmd_login(args):
 
 def cmd_view(args):
     res = requests.get(API+"/list")
-    data = res.json()
-    print("[gopuTN] 📦 Packages disponibles:")
-    for p in data.get("packages", []):
-        print(" -", p)
+    safe_print_response(res)
 
 def cmd_draw(args):
     pkg = args.package
@@ -59,7 +62,7 @@ def cmd_draw(args):
             f.write(res.content)
         print(f"[gopuTN] ✅ Package '{pkg}' stocké dans {path}")
     else:
-        print("[gopuTN] ❌ Erreur:", res.text)
+        safe_print_response(res)
 
 def cmd_send(args):
     token = load_token()
@@ -83,7 +86,7 @@ def cmd_send(args):
                     headers={"Authorization": f"Bearer {token}"},
                     files={"file": fobj},
                     data={"name": pkg_name, "version": version, "path": file})
-                print(res.json())
+                safe_print_response(res)
     else:
         print(f"[gopuTN] ℹ️ Publication du package '{args.package}'...")
         with open(args.file, "rb") as f:
@@ -91,7 +94,7 @@ def cmd_send(args):
                 headers={"Authorization": f"Bearer {token}"},
                 files={"file": f},
                 data={"name": args.package})
-        print(res.json())
+        safe_print_response(res)
 
 def cmd_lest(args):
     pkg = args.package
@@ -158,7 +161,7 @@ def cmd_let(args):
                         f.write(res.content)
                     print(f"[gopuTN] ✅ Environnement {env_name}:{version} installé")
                 else:
-                    print("[gopuTN] ❌ Impossible de récupérer l'environnement:", res.text)
+                    safe_print_response(res)
             else:
                 print(f"[gopuTN] 📦 Base image: {arg}")
         elif cmd == "LOC":
