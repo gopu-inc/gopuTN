@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import argparse
 import os
 import sys
@@ -46,23 +47,34 @@ def cmd_login(args):
     else:
         print("[gopuTN] ❌ Erreur de connexion:", data)
 
-def cmd_view(args):
+def cmd_register(args):
+    print("[gopuTN] ℹ️ Création de compte...")
+    res = requests.post(API+"/register", json={"email": args.email, "password": args.password})
+    safe_print_response(res)
+
+def cmd_list(args):
     res = requests.get(API+"/list")
     safe_print_response(res)
 
-def cmd_draw(args):
-    pkg = args.package
-    print(f"[gopuTN] ℹ️ Téléchargement du package '{pkg}'...")
-    res = requests.get(f"{API}/pull/{pkg}")
+def cmd_search(args):
+    res = requests.get(f"{API}/search?q={args.query}")
+    safe_print_response(res)
+
+def cmd_readme(args):
+    res = requests.get(f"{API}/readme/{args.name}/{args.version}")
     if res.ok:
-        path = os.path.join(IMAGES_DIR, pkg)
-        ensure_dir(path)
-        pkg_file = os.path.join(path, f"{pkg}.pkg")
-        with open(pkg_file, "wb") as f:
-            f.write(res.content)
-        print(f"[gopuTN] ✅ Package '{pkg}' stocké dans {path}")
+        print(res.text)
     else:
         safe_print_response(res)
+
+def cmd_stats(args):
+    res = requests.get(f"{API}/stats/{args.name}/{args.version}")
+    safe_print_response(res)
+
+def cmd_assoc(args):
+    scope = args.scope
+    res = requests.get(f"{API}/search?q=@{scope}/")
+    safe_print_response(res)
 
 def cmd_send(args):
     token = load_token()
@@ -76,34 +88,27 @@ def cmd_send(args):
         pkg_name = config["name"]
         version = config["version"]
         files = config["files"]
+        tags = getattr(args, "tags", "[]")
         print(f"[gopuTN] ℹ️ Publication du package '{pkg_name}:{version}' avec {len(files)} fichiers...")
-        for file in files:
-            if not os.path.exists(file):
-                print(f"[gopuTN] ❌ Fichier introuvable: {file}")
-                continue
-            with open(file, "rb") as fobj:
-                res = requests.post(API+"/push",
-                    headers={"Authorization": f"Bearer {token}"},
-                    files={"files": fobj},
-                    data={"name": pkg_name, "version": version, "path": file})
-                safe_print_response(res)
-    else:
-        print(f"[gopuTN] ℹ️ Publication du package '{args.package}'...")
-        with open(args.file, "rb") as f:
-            res = requests.post(API+"/push",
-                headers={"Authorization": f"Bearer {token}"},
-                files={"file": f},
-                data={"name": args.package})
+        file_objs = [("files", open(f, "rb")) for f in files if os.path.exists(f)]
+        res = requests.post(API+"/push",
+            headers={"Authorization": f"Bearer {token}"},
+            data={"name": pkg_name, "version": version, "tags": tags},
+            files=file_objs)
         safe_print_response(res)
+    else:
+        print("[gopuTN] ❌ gotn.json introuvable, fais 'gotn init' d'abord")
 
-def cmd_lest(args):
-    pkg = args.package
-    path = os.path.join(IMAGES_DIR, pkg, f"{pkg}.pkg")
-    if not os.path.exists(path):
-        print(f"[gopuTN] ❌ Package '{pkg}' introuvable, fais 'gotn draw {pkg}' d'abord")
-        return
-    print(f"[gopuTN] ℹ️ Exécution du package '{pkg}'...")
-    os.system(f"node {path}")
+def cmd_init(args):
+    """Crée un fichier gotn.json listant les fichiers à publier"""
+    config = {
+        "name": args.name,
+        "version": args.version,
+        "files": args.files
+    }
+    with open("gotn.json", "w") as f:
+        json.dump(config, f, indent=2)
+    print("[gopuTN] ✅ Fichier gotn.json créé")
 
 def cmd_const(args):
     """Transpile un fichier *.gopuTN en manifest JSON"""
@@ -149,21 +154,7 @@ def cmd_let(args):
         elif cmd == "NET":
             print(f"[gopuTN] 🌐 Port exposé: {arg}")
         elif cmd == "REC":
-            if arg.startswith("gotn:"):
-                env_name = arg.split(":")[1]
-                version = arg.split(":")[2] if len(arg.split(":")) > 2 else "latest"
-                print(f"[gopuTN] 📦 Environnement gopHub: {env_name}:{version}")
-                res = requests.get(f"{API}/pull/{env_name}-{version}")
-                if res.ok:
-                    env_path = os.path.join(IMAGES_DIR, f"{env_name}-{version}")
-                    ensure_dir(env_path)
-                    with open(os.path.join(env_path, f"{env_name}.env"), "wb") as f:
-                        f.write(res.content)
-                    print(f"[gopuTN] ✅ Environnement {env_name}:{version} installé")
-                else:
-                    safe_print_response(res)
-            else:
-                print(f"[gopuTN] 📦 Base image: {arg}")
+            print(f"[gopuTN] 📦 Environnement requis: {arg}")
         elif cmd == "LOC":
             print(f"[gopuTN] 📂 Workdir: {arg}")
         elif cmd == "BY":
@@ -171,70 +162,79 @@ def cmd_let(args):
         elif cmd == "GO":
             os.system(" ".join(json.loads(arg)))
 
-def cmd_init(args):
-    """Crée un fichier gotn.json listant les fichiers à publier"""
-    config = {
-        "name": args.name,
-        "version": args.version,
-        "files": args.files
-    }
-    with open("gotn.json", "w") as f:
-        json.dump(config, f, indent=2)
-    print("[gopuTN] ✅ Fichier gotn.json créé")
-
 # ---------------------------
 # Main
 # ---------------------------
 
 def main():
-    parser = argparse.ArgumentParser(prog="gotn")
+    parser = argparse.ArgumentParser(prog="gotn", description="gopHub CLI 🚀")
     subparsers = parser.add_subparsers(dest="command")
 
     # login
-    p_login = subparsers.add_parser("login")
+    p_login = subparsers.add_parser("login", help="Connexion à gopHub")
     p_login.add_argument("email")
     p_login.add_argument("password")
     p_login.set_defaults(func=cmd_login)
 
-    # view
-    p_view = subparsers.add_parser("view")
-    p_view.set_defaults(func=cmd_view)
+    # register
+    p_register = subparsers.add_parser("register", help="Créer un compte utilisateur")
+    p_register.add_argument("email")
+    p_register.add_argument("password")
+    p_register.set_defaults(func=cmd_register)
 
-    # draw
-    p_draw = subparsers.add_parser("draw")
-    p_draw.add_argument("package")
-    p_draw.set_defaults(func=cmd_draw)
+    # list
+    p_list = subparsers.add_parser("list", help="Liste tous les packages")
+    p_list.set_defaults(func=cmd_list)
+
+    # search
+    p_search = subparsers.add_parser("search", help="Recherche par mot-clé ou tag")
+    p_search.add_argument("query")
+    p_search.set_defaults(func=cmd_search)
+
+    # readme
+    p_readme = subparsers.add_parser("readme", help="Affiche le README d’un package")
+    p_readme.add_argument("name")
+    p_readme.add_argument("version")
+    p_readme.set_defaults(func=cmd_readme)
+
+    # stats
+    p_stats = subparsers.add_parser("stats", help="Affiche les stats d’un package")
+    p_stats.add_argument("name")
+    p_stats.add_argument("version")
+    p_stats.set_defaults(func=cmd_stats)
+
+    # assoc
+    p_assoc = subparsers.add_parser("assoc", help="Liste les packages d’une association (@scope/*)")
+    p_assoc.add_argument("scope")
+    p_assoc.set_defaults(func=cmd_assoc)
 
     # send
-    p_send = subparsers.add_parser("send")
-    p_send.add_argument("package", nargs="?")
-    p_send.add_argument("file", nargs="?")
+    p_send = subparsers.add_parser("send", help="Publie un package")
+    p_send.add_argument("--tags", help="Tags du package (JSON ou liste séparée par des virgules)", default="[]")
     p_send.set_defaults(func=cmd_send)
 
-    # lest
-    p_lest = subparsers.add_parser("lest")
-    p_lest.add_argument("package")
-    p_lest.set_defaults(func=cmd_lest)
-
-    # const
-    p_const = subparsers.add_parser("const")
-    p_const.add_argument("file")
-    p_const.set_defaults(func=cmd_const)
-
-    # let
-    p_let = subparsers.add_parser("let")
-    p_let.add_argument("file")
-    p_let.set_defaults(func=cmd_let)
-
     # init
-    p_init = subparsers.add_parser("init")
+    p_init = subparsers.add_parser("init", help="Crée un fichier gotn.json")
     p_init.add_argument("name")
     p_init.add_argument("version")
     p_init.add_argument("files", nargs="+")
     p_init.set_defaults(func=cmd_init)
+
+    # const
+    p_const = subparsers.add_parser("const", help="Transpile un fichier .gopuTN en manifest JSON")
+    p_const.add_argument("file")
+    p_const.set_defaults(func=cmd_const)
+
+    # let
+    p_let = subparsers.add_parser("let", help="Exécute un manifest JSON généré par const")
+    p_let.add_argument("file")
+    p_let.set_defaults(func=cmd_let)
 
     args = parser.parse_args()
     if hasattr(args, "func"):
         args.func(args)
     else:
         parser.print_help()
+
+if __name__ == "__main__":
+    main()
