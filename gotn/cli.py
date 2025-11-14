@@ -215,6 +215,7 @@ def main():
 
     # init
     p_init = subparsers.add_parser("init", help="Crée un fichier gotn.json")
+    p_init.add_argument("--tags", nargs="+", help="Tags du package", default=[])
     p_init.add_argument("name")
     p_init.add_argument("version")
     p_init.add_argument("files", nargs="+")
