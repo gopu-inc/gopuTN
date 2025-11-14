@@ -237,4 +237,8 @@ def main():
 
     # send
     p_send = subparsers.add_parser("send", help="Publie un package")
-    p_send.add_argument("--tags", help="Tags du package (JSON ou liste séparée par des virgules)", default="[]
+    p_send.add_argument("--tags", help="Tags du package (JSON ou liste séparée par des virgules)", default="[]")
+    p_send.set_defaults(func=cmd_send)
+
+    # init
+    p_init = subparsers.add_parser("init", help="Crée un fichier gotn.json")
