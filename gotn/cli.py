@@ -112,6 +112,24 @@ def cmd_init(args):
         json.dump(config, f, indent=2)
     print("[gopuTN] ✅ Fichier gotn.json créé")
 
+# Dans ton CLI gotn.py
+import requests
+
+API = "http://localhost:8000"
+
+def cmd_exec(args):
+    r = requests.post(API+"/terminal", json={"env": args.env, "command": args.command})
+    print(r.json()["output"])
+
+def cmd_env_create(args):
+    r = requests.post(API+"/env/create", data={
+        "name": args.name,
+        "version": args.version,
+        "description": args.description,
+        "tags": json.dumps(args.tags)
+    })
+    print(r.json())
+
 def cmd_const(args):
     """Transpile un fichier *.gopuTN en manifest JSON"""
     infile = args.file
@@ -177,6 +195,18 @@ def main():
     p_login.add_argument("email")
     p_login.add_argument("password")
     p_login.set_defaults(func=cmd_login)
+
+    p_exec = sub.add_parser("exec", help="Exécuter une commande dans un env")
+    p_exec.add_argument("env")
+    p_exec.add_argument("command")
+    p_exec.set_defaults(func=cmd_exec)
+
+    p_env = sub.add_parser("env", help="Créer un nouvel environnement")
+    p_env.add_argument("name")
+    p_env.add_argument("version")
+    p_env.add_argument("--description", default="")
+    p_env.add_argument("--tags", nargs="+", default=[])
+    p_env.set_defaults(func=cmd_env_create)
 
     # register
     p_register = subparsers.add_parser("register", help="Créer un compte utilisateur")
