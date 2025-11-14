@@ -112,11 +112,7 @@ def cmd_init(args):
         json.dump(config, f, indent=2)
     print("[gopuTN] ✅ Fichier gotn.json créé")
 
-# Dans ton CLI gotn.py
-import requests
-
-API = "http://localhost:8000"
-
+#
 def cmd_exec(args):
     r = requests.post(API+"/terminal", json={"env": args.env, "command": args.command})
     print(r.json()["output"])
