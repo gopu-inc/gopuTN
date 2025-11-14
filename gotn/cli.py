@@ -102,10 +102,12 @@ def cmd_send(args):
 def cmd_init(args):
     """Crée un fichier gotn.json listant les fichiers à publier"""
     config = {
-        "name": args.name,
-        "version": args.version,
-        "files": args.files
-    }
+    "name": args.name,
+    "version": args.version,
+    "files": args.files,
+    "tags": args.tags
+}
+
     with open("gotn.json", "w") as f:
         json.dump(config, f, indent=2)
     print("[gopuTN] ✅ Fichier gotn.json créé")
