@@ -25,9 +25,6 @@ def load_token():
             return json.load(f).get("token")
     return None
 
-def ensure_dir(path):
-    os.makedirs(path, exist_ok=True)
-
 def safe_print_response(res):
     try:
         print(json.dumps(res.json(), indent=2))
@@ -41,14 +38,9 @@ def safe_print_response(res):
 def cmd_login(args):
     print("[gopuTN] ℹ️ Connexion à gopHub...")
     res = requests.post(API+"/login", json={"email": args.email, "password": args.password})
-    if res.ok:
-        data = res.json()
-        if "token" in data:
-            save_token(data["token"])
-        else:
-            print("[gopuTN] ❌ Erreur de connexion:", data)
-    else:
-        safe_print_response(res)
+    safe_print_response(res)
+    if res.ok and "token" in res.json():
+        save_token(res.json()["token"])
 
 def cmd_register(args):
     print("[gopuTN] ℹ️ Création de compte...")
@@ -242,3 +234,7 @@ def main():
 
     # init
     p_init = subparsers.add_parser("init", help="Crée un fichier gotn.json")
+    p_init.add_argument("name")
+    p_init.add_argument("version")
+    p_init.add_argument("files", nargs="+")
+    p_init.add_argument("--tags", nargs="+", help="Tags du
