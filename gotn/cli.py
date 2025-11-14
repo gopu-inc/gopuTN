@@ -238,3 +238,24 @@ def main():
     p_init.add_argument("version")
     p_init.add_argument("files", nargs="+")
     p_init.add_argument("--tags", nargs="+", help="Tags du
+    p_init.set_defaults(func=cmd_init)
+
+    # const
+    p_const = subparsers.add_parser("const", help="Transpile un fichier .gopuTN en manifest JSON")
+    p_const.add_argument("file")
+    p_const.set_defaults(func=cmd_const)
+
+    # let
+    p_let = subparsers.add_parser("let", help="Exécute un manifest JSON généré par const")
+    p_let.add_argument("file")
+    p_let.set_defaults(func=cmd_let)
+
+    # Parse args et exécution
+    args = parser.parse_args()
+    if hasattr(args, "func"):
+        args.func(args)
+    else:
+        parser.print_help()
+
+if __name__ == "__main__":
+    main()
