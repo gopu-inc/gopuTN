@@ -12,6 +12,13 @@ CONFIG = os.path.expanduser("~/.gotnrc")
 # ---------------------------
 # Utilitaires
 # ---------------------------
+import chromadb
+
+client = chromadb.CloudClient(
+    api_key="ck-HeQ5CjvCf12ZUmy3CZ6mpUngVCPzfSu2Satb9dNH9UFH",
+    tenant="35ae2738-0e3b-4320-8dfe-47996c37c9b7",
+    database="gopu.inc"
+)
 
 def save_token(token):
     os.makedirs(os.path.dirname(CONFIG), exist_ok=True)
