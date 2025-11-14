@@ -237,7 +237,7 @@ def main():
     p_init.add_argument("name")
     p_init.add_argument("version")
     p_init.add_argument("files", nargs="+")
-    p_init.add_argument("--tags", nargs="+", help="Tags du
+    p_init.add_argument("--tags", nargs="+", help="Tags du package", default=[])
     p_init.set_defaults(func=cmd_init)
 
     # const
