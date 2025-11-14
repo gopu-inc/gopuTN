@@ -30,8 +30,8 @@ def ensure_dir(path):
 
 def safe_print_response(res):
     try:
-        print(res.json())
-    except ValueError:
+        print(json.dumps(res.json(), indent=2))
+    except Exception:
         print("[gopuTN] ℹ️ Réponse brute du serveur:", res.text)
 
 # ---------------------------
@@ -41,11 +41,14 @@ def safe_print_response(res):
 def cmd_login(args):
     print("[gopuTN] ℹ️ Connexion à gopHub...")
     res = requests.post(API+"/login", json={"email": args.email, "password": args.password})
-    data = res.json()
-    if "token" in data:
-        save_token(data["token"])
+    if res.ok:
+        data = res.json()
+        if "token" in data:
+            save_token(data["token"])
+        else:
+            print("[gopuTN] ❌ Erreur de connexion:", data)
     else:
-        print("[gopuTN] ❌ Erreur de connexion:", data)
+        safe_print_response(res)
 
 def cmd_register(args):
     print("[gopuTN] ℹ️ Création de compte...")
@@ -72,8 +75,7 @@ def cmd_stats(args):
     safe_print_response(res)
 
 def cmd_assoc(args):
-    scope = args.scope
-    res = requests.get(f"{API}/search?q=@{scope}/")
+    res = requests.get(f"{API}/search?q=@{args.scope}/")
     safe_print_response(res)
 
 def cmd_send(args):
@@ -100,34 +102,30 @@ def cmd_send(args):
         print("[gopuTN] ❌ gotn.json introuvable, fais 'gotn init' d'abord")
 
 def cmd_init(args):
-    """Crée un fichier gotn.json listant les fichiers à publier"""
     config = {
-    "name": args.name,
-    "version": args.version,
-    "files": args.files,
-    "tags": args.tags
-}
-
+        "name": args.name,
+        "version": args.version,
+        "files": args.files,
+        "tags": args.tags
+    }
     with open("gotn.json", "w") as f:
         json.dump(config, f, indent=2)
     print("[gopuTN] ✅ Fichier gotn.json créé")
 
-#
 def cmd_exec(args):
-    r = requests.post(API+"/terminal", json={"env": args.env, "command": args.command})
-    print(r.json()["output"])
+    res = requests.post(API+"/terminal", json={"env": args.env, "command": args.command})
+    safe_print_response(res)
 
 def cmd_env_create(args):
-    r = requests.post(API+"/env/create", data={
+    res = requests.post(API+"/env/create", data={
         "name": args.name,
         "version": args.version,
         "description": args.description,
         "tags": json.dumps(args.tags)
     })
-    print(r.json())
+    safe_print_response(res)
 
 def cmd_const(args):
-    """Transpile un fichier *.gopuTN en manifest JSON"""
     infile = args.file
     if not os.path.exists(infile):
         print("[gopuTN] ❌ Fichier introuvable:", infile)
@@ -150,7 +148,6 @@ def cmd_const(args):
     print(f"[gopuTN] ✅ Manifest généré: {out}")
 
 def cmd_let(args):
-    """Exécute un manifest JSON généré par const"""
     infile = args.file
     manifest = infile.replace(".gopuTN", ".json")
     if not os.path.exists(manifest):
@@ -192,12 +189,14 @@ def main():
     p_login.add_argument("password")
     p_login.set_defaults(func=cmd_login)
 
-    p_exec = sub.add_parser("exec", help="Exécuter une commande dans un env")
+    # exec
+    p_exec = subparsers.add_parser("exec", help="Exécuter une commande dans un env")
     p_exec.add_argument("env")
     p_exec.add_argument("command")
     p_exec.set_defaults(func=cmd_exec)
 
-    p_env = sub.add_parser("env", help="Créer un nouvel environnement")
+    # env create
+    p_env = subparsers.add_parser("env", help="Créer un nouvel environnement")
     p_env.add_argument("name")
     p_env.add_argument("version")
     p_env.add_argument("--description", default="")
@@ -238,32 +237,4 @@ def main():
 
     # send
     p_send = subparsers.add_parser("send", help="Publie un package")
-    p_send.add_argument("--tags", help="Tags du package (JSON ou liste séparée par des virgules)", default="[]")
-    p_send.set_defaults(func=cmd_send)
-
-    # init
-    p_init = subparsers.add_parser("init", help="Crée un fichier gotn.json")
-    p_init.add_argument("--tags", nargs="+", help="Tags du package", default=[])
-    p_init.add_argument("name")
-    p_init.add_argument("version")
-    p_init.add_argument("files", nargs="+")
-    p_init.set_defaults(func=cmd_init)
-
-    # const
-    p_const = subparsers.add_parser("const", help="Transpile un fichier .gopuTN en manifest JSON")
-    p_const.add_argument("file")
-    p_const.set_defaults(func=cmd_const)
-
-    # let
-    p_let = subparsers.add_parser("let", help="Exécute un manifest JSON généré par const")
-    p_let.add_argument("file")
-    p_let.set_defaults(func=cmd_let)
-
-    args = parser.parse_args()
-    if hasattr(args, "func"):
-        args.func(args)
-    else:
-        parser.print_help()
-
-if __name__ == "__main__":
-    main()
+    p_send.add_argument("--tags", help="Tags du package (JSON ou liste séparée par des virgules)", default="[]
