@@ -1,4 +1,4 @@
-ng = {
+gotn = {
     "REC": "FROM",
     "DO": "RUN",
     "BY": "COPY",
