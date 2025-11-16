@@ -30,12 +30,14 @@ jobs:
     - name: 🛠️ Build the package
       run: python -m build
 
+    # --- Publication sur PyPI ---
     - name: 🚀 Publish to PyPI
       env:
         TWINE_USERNAME: __token__
         TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
       run: twine upload dist/*
 
+    # --- Publication sur GitHub Packages ---
     - name: 📤 Publish to GitHub Packages
       env:
         TWINE_USERNAME: ${{ github.actor }}
@@ -45,6 +47,7 @@ jobs:
           --repository-url https://upload.pypi.org/legacy/ \
           dist/*
 
+    # --- Tests ---
     - name: 🧪 Create clean virtualenv
       run: |
         python -m venv testenv
@@ -54,7 +57,8 @@ jobs:
     - name: 📥 Install from GitHub Packages
       run: |
         source testenv/bin/activate
-        pip install --extra-index-url https://pypi.org/simple $PACKAGE_NAME
+        pip install $PACKAGE_NAME \
+          --extra-index-url https://pypi.org/simple
 
     - name: ✅ Run basic CLI test
       run: |
