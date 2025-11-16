@@ -1,5 +1,8 @@
 from setuptools import setup, find_packages
 
+with open("README.md", "r", encoding="utf-8") as f:
+    long_description = f.read()
+
 setup(
     name="gotn",
     version="0.2.1",
@@ -9,4 +12,6 @@ setup(
             "gotn=gotn.cli:main",
         ],
     },
+    long_description=long_description,
+    long_description_content_type="text/markdown",
 )
