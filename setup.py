@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as f:
 
 setup(
     name="gotn",
-    version="0.2.2",
+    version="0.2.3",
     packages=find_packages(),
     entry_points={
         "console_scripts": [
