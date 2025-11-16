@@ -1,22 +1,51 @@
+<img width="1024" height="1024" alt="IMG_6950" src="https://github.com/user-attachments/assets/8087e0a0-04c6-438f-ae26-07ef51237db2" />
+# gotn 🐨 - Le lient CLI pour gopHub
 
-# gotn 🐨 - Le Client CLI pour gopHub
-
-![gotn Banner](https://user-images.githubusercontent.com/username/repo/assets/gotn-banner.png)
 
 <p align="center">
-  <a href="https://pypi.org/project/gotn/"><img alt="PyPI Version" src="https://img.shields.io/pypi/v/gotn.svg"></a>
-  <a href="https://github.com/gopu-inc/gopuTN/blob/main/.github/workflows/agent.yml"><img alt="Build Status" src="https://img.shields.io/https://github.com/gopu-inc/gopuTN/blob/main/.github/workflows/agent.yml?branch=main"></a>
-  <a href="https://codecov.io/gh/gopu-inc/gopuTN"><img alt="Coverage" src="https://img.shields.io/codecov/c/github/user/gotn"></a>
-  <a href="https://github.com/gopu-inc/gopuTN/blob/main/LICENSE"><img alt="License" src="https://img.shields.io/pypi/l/gotn.svg"></a>
-  <a href="https://github.com/psf/black"><img alt="Code style: black" src="https://img.shields.io/badge/code%20style-black-000000.svg"></a>
+  <!-- Version PyPI -->
+  <a href="https://pypi.org/project/gotn/">
+    <img alt="PyPI Version" src="https://img.shields.io/pypi/v/gotn.svg">
+  </a>
+
+  <!-- Build Status (GitHub Actions) -->
+  <a href="https://github.com/gopu-inc/gopuTN/actions/workflows/agent.yml">
+    <img alt="Build Status" src="https://github.com/gopu-inc/gopuTN/actions/workflows/agent.yml/badge.svg?branch=main">
+  </a>
+
+  <!-- Coverage (Codecov) -->
+  <a href="https://codecov.io/gh/gopu-inc/gopuTN">
+    <img alt="Coverage" src="https://codecov.io/gh/gopu-inc/gopuTN/branch/main/graph/badge.svg">
+  </a>
+
+  <!-- License -->
+  <a href="https://github.com/gopu-inc/gopuTN/blob/main/LICENSE">
+    <img alt="License" src="https://img.shields.io/github/license/gopu-inc/gopuTN.svg">
+  </a>
+
+  <!-- Code style: Black -->
+  <a href="https://github.com/psf/black">
+    <img alt="Code style: black" src="https://img.shields.io/badge/code%20style-black-000000.svg">
+  </a>
+
+  <!-- Docker Version -->
+  <a href="https://hub.docker.com/r/gopuinc/gotn">
+    <img alt="Docker Version" src="https://img.shields.io/docker/v/gopuinc/gotn?sort=semver">
+  </a>
+
+  <!-- Docker Avenir (prévu/futur) -->
+  <a href="https://hub.docker.com/r/gopuinc/gotn">
+    <img alt="Docker Avenir" src="https://img.shields.io/badge/docker-avenir-blue.svg">
+  </a>
 </p>
+
 
 <p align="center">
   <i>"Votre terminal, votre hub, votre écosystème. Centralisez, partagez et exécutez vos "gotn" avec une simplicité déconcertante."</i>
 </p>
 
 ---
-
+![gotn Banner](https://copilot.microsoft.com/th/id/BCO.4641e553-2a04-4ae2-b1ab-b243bb3bd887.png)
 ## 📋 Sommaire
 
 - [🎯 Introduction : La Vision de gopHub](#-introduction--la-vision-de-gophub)
