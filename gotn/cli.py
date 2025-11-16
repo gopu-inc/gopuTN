@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import importlib.metadata
 import argparse
 import os
 import sys
@@ -12,6 +13,27 @@ CONFIG = os.path.expanduser("~/.gotnrc")
 # ---------------------------
 # Utilitaires
 # ---------------------------
+
+import argparse
+import requests
+
+def cmd_version(args):
+    url = "https://pypi.org/pypi/gotn/json"
+    try:
+        res = requests.get(url, timeout=5)
+        data = res.json()
+        current = data["info"]["version"]
+        if args.pear:
+            print("📜 Versions précédentes :")
+            # On liste toutes les releases sauf la dernière
+            versions = list(data["releases"].keys())
+            versions.remove(current)
+            for v in sorted(versions):
+                print("-", v)
+        else:
+            print(f"🌀 Version actuelle : {current}")
+    except Exception as e:
+        print("[gopuTN] ❌ Impossible de récupérer la version depuis PyPI :", e)
 
 def save_token(token):
     os.makedirs(os.path.dirname(CONFIG), exist_ok=True)
@@ -348,7 +370,12 @@ def main():
     p_let = sub.add_parser("let", help="Exécuter un manifest JSON généré par const")
     p_let.add_argument("file")
     p_let.set_defaults(func=cmd_let)
+    # version
+    p_version = sub.add_parser("version", help="Afficher la version du package depuis PyPI")
+    p_version.add_argument("--pear", action="store_true", help="Afficher les versions précédentes")
+    p_version.set_defaults(func=cmd_version)
 
+    
     # Parse args et exécution
     args = parser.parse_args()
     if hasattr(args, "func"):
