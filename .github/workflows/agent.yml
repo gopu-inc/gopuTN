@@ -11,6 +11,7 @@ jobs:
     env:
       PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
       GP_TOKEN: ${{ secrets.GP_TOKEN }}
+      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
       PACKAGE_NAME: gotn
 
     steps:
@@ -40,8 +41,8 @@ jobs:
     # --- Publication sur GitHub Packages ---
     - name: 📤 Publish to GitHub Packages
       env:
-        TWINE_USERNAME: ${{ github.actor }}
-        TWINE_PASSWORD: ${{ secrets.GP_TOKEN }}
+        TWINE_USERNAME: __token__
+        TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
       run: |
         twine upload \
           --repository-url https://upload.pypi.org/legacy/ \
@@ -79,3 +80,14 @@ jobs:
       run: |
         source testenv/bin/activate
         gotn list --limit 1
+
+    # --- Couverture de code ---
+    - name: 🧪 Run tests with coverage
+      run: |
+        pip install pytest pytest-cov
+        pytest --cov=gotn tests/
+
+    - name: 📤 Upload coverage to Codecov
+      uses: codecov/codecov-action@v4
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
