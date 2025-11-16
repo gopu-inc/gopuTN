@@ -5,7 +5,7 @@
 
 <p align="center">
   <a href="https://pypi.org/project/gotn/"><img alt="PyPI Version" src="https://img.shields.io/pypi/v/gotn.svg"></a>
-  <a href="https://github.com/gopu-inc/gopuTN/actions/workflows/ci.yml"><img alt="Build Status" src="https://img.shields.io/https://github.com/gopu-inc/gopuTN/blob/main/.github/workflows/agent.yml?branch=main"></a>
+  <a href="https://github.com/gopu-inc/gopuTN/actions/workflows/agent.yml"><img alt="Build Status" src="https://img.shields.io/https://github.com/gopu-inc/gopuTN/blob/main/.github/workflows/agent.yml?branch=main"></a>
   <a href="https://codecov.io/gh/gopu-inc/gopuTN"><img alt="Coverage" src="https://img.shields.io/codecov/c/github/user/gotn"></a>
   <a href="https://github.com/gopu-inc/gopuTN/blob/main/LICENSE"><img alt="License" src="https://img.shields.io/pypi/l/gotn.svg"></a>
   <a href="https://github.com/psf/black"><img alt="Code style: black" src="https://img.shields.io/badge/code%20style-black-000000.svg"></a>
