@@ -56,11 +56,23 @@ def cmd_register(args):
     safe_print_response(res)
 
 def cmd_list(args):
-    res = requests.get(API+"/list")
+    params = {}
+    if args.mine:
+        params["mine"] = True
+    if args.sort:
+        params["sort"] = args.sort
+    if args.limit:
+        params["limit"] = args.limit
+    res = requests.get(API+"/list", params=params)
     safe_print_response(res)
 
 def cmd_search(args):
-    res = requests.get(f"{API}/search?q={args.query}")
+    if args.semantic:
+        res = requests.get(f"{API}/search/semantic", params={"q": args.semantic})
+    elif args.tags:
+        res = requests.get(f"{API}/search/tags", params={"tags": ",".join(args.tags)})
+    else:
+        res = requests.get(f"{API}/search", params={"q": args.query})
     safe_print_response(res)
 
 def cmd_readme(args):
@@ -83,7 +95,6 @@ def cmd_send(args):
     if not token:
         print("[gopuTN] ❌ Aucun token trouvé, fais 'gotn login' d'abord")
         return
-
     if os.path.exists("gotn.json"):
         with open("gotn.json") as f:
             config = json.load(f)
@@ -134,17 +145,25 @@ def cmd_update(args):
     safe_print_response(res)
 
 def cmd_delete(args):
-    res = requests.delete(f"{API}/delete/{args.name}/{args.version}",
-                          headers=auth_header())
+    if not args.confirm:
+        print("[gopuTN] ❌ Utilisez --confirm pour confirmer la suppression")
+        return
+    res = requests.delete(f"{API}/delete/{args.name}", headers=auth_header())
     safe_print_response(res)
 
 def cmd_pull(args):
-    res = requests.get(f"{API}/pull/{args.name}/{args.version}/{args.filename}",
-                       headers=auth_header())
+    parts = args.path.split("/")
+    if len(parts) != 2:
+        print("[gopuTN] ❌ Format attendu: scope/name")
+        return
+    scope, name = parts
+    res = requests.get(f"{API}/pull/{scope}/{name}", headers=auth_header())
     if res.ok:
-        with open(args.filename, "wb") as f:
+        folder = name
+        os.makedirs(folder, exist_ok=True)
+        with open(os.path.join(folder, "README.md"), "wb") as f:
             f.write(res.content)
-        print(f"[gopuTN] ✅ Fichier téléchargé: {args.filename}")
+        print(f"[gopuTN] ✅ Gop téléchargé dans ./{folder}")
     else:
         safe_print_response(res)
 
@@ -170,7 +189,6 @@ def cmd_const(args):
     if not os.path.exists(infile):
         print("[gopuTN] ❌ Fichier introuvable:", infile)
         return
-
     manifest = {"commands": []}
     with open(infile) as f:
         for line in f:
@@ -180,12 +198,8 @@ def cmd_const(args):
             parts = line.split(maxsplit=1)
             cmd = parts[0].upper()
             arg = parts[1] if len(parts) > 1 else ""
-
-            # Normaliser CREATE
             if cmd in ["CREATE", "CREAT"]:
                 cmd = "CREATE"
-
-            # Normaliser GO avec préfixe g:
             if cmd == "GO" and arg.startswith("["):
                 try:
                     arr = json.loads(arg)
@@ -194,9 +208,7 @@ def cmd_const(args):
                     arg = json.dumps(arr)
                 except Exception:
                     pass
-
             manifest["commands"].append({"cmd": cmd, "arg": arg})
-
     out = infile.replace(".gopuTN", ".json")
     with open(out, "w") as f:
         json.dump(manifest, f, indent=2)
@@ -208,10 +220,8 @@ def cmd_let(args):
     if not os.path.exists(manifest):
         print("[gopuTN] ❌ Manifest introuvable, fais 'gotn const' d'abord")
         return
-
     with open(manifest) as f:
         data = json.load(f)
-
     print("[gopuTN] ℹ️ Exécution du manifest...")
     for entry in data["commands"]:
         cmd = entry["cmd"]
@@ -237,20 +247,38 @@ def cmd_let(args):
 # ---------------------------
 
 def main():
-    parser = argparse.ArgumentParser(prog="gotn", description="gopHub CLI 🚀 — gestion des packages, environnements et manifests .gopuTN")
+    parser = argparse.ArgumentParser(
+        prog="gotn",
+        description="gopHub CLI 🚀 — gestion des packages, environnements et manifests .gopuTN"
+    )
     sub = parser.add_subparsers(dest="command")
 
     # login / register
-    p_login = sub.add_parser("login", help="Connexion à gopHub"); p_login.add_argument("email"); p_login.add_argument("password"); p_login.set_defaults(func=cmd_login)
-    p_register = sub.add_parser
-      # list / search / readme / stats / assoc
-    p_list = sub.add_parser("list", help="Lister tous les packages disponibles")
+    p_login = sub.add_parser("login", help="Connexion à gopHub")
+    p_login.add_argument("email")
+    p_login.add_argument("password")
+    p_login.set_defaults(func=cmd_login)
+
+    p_register = sub.add_parser("register", help="Créer un compte gopHub")
+    p_register.add_argument("email")
+    p_register.add_argument("password")
+    p_register.set_defaults(func=cmd_register)
+
+    # list
+    p_list = sub.add_parser("list", help="Lister les packages")
+    p_list.add_argument("--mine", action="store_true", help="Lister uniquement vos gops")
+    p_list.add_argument("--sort", choices=["popularity", "date"], help="Trier les gops")
+    p_list.add_argument("--limit", type=int, default=0, help="Limiter le nombre de résultats")
     p_list.set_defaults(func=cmd_list)
 
-    p_search = sub.add_parser("search", help="Rechercher un package par mot-clé ou tag")
-    p_search.add_argument("query")
+    # search
+    p_search = sub.add_parser("search", help="Rechercher un gop")
+    p_search.add_argument("query", nargs="?", help="Mot-clé ou texte de recherche")
+    p_search.add_argument("--semantic", help="Recherche sémantique")
+    p_search.add_argument("--tags", nargs="+", help="Recherche par tags")
     p_search.set_defaults(func=cmd_search)
 
+    # readme / stats / assoc
     p_readme = sub.add_parser("readme", help="Afficher le README d’un package")
     p_readme.add_argument("name")
     p_readme.add_argument("version")
@@ -303,15 +331,13 @@ def main():
     p_update.add_argument("--tags", nargs="+", default=[], help="Nouveaux tags")
     p_update.set_defaults(func=cmd_update)
 
-    p_delete = sub.add_parser("delete", help="Supprimer un package")
+    p_delete = sub.add_parser("delete", help="Supprimer un gop")
     p_delete.add_argument("name")
-    p_delete.add_argument("version")
+    p_delete.add_argument("--confirm", action="store_true", help="Confirmer la suppression")
     p_delete.set_defaults(func=cmd_delete)
 
-    p_pull = sub.add_parser("pull", help="Télécharger un fichier depuis un package")
-    p_pull.add_argument("name")
-    p_pull.add_argument("version")
-    p_pull.add_argument("filename")
+    p_pull = sub.add_parser("pull", help="Télécharger un gop depuis la plateforme")
+    p_pull.add_argument("path", help="Nom complet du gop (ex: scope/name)")
     p_pull.set_defaults(func=cmd_pull)
 
     # const / let
@@ -329,6 +355,7 @@ def main():
         args.func(args)
     else:
         parser.print_help()
+
 
 if __name__ == "__main__":
     main()
