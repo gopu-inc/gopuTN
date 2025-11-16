@@ -1,0 +1,77 @@
+name: 📦 Publish & Verify Package
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  publish-and-test:
+    runs-on: ubuntu-latest
+
+    env:
+      PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
+      GP_TOKEN: ${{ secrets.GP_TOKEN }}
+      PACKAGE_NAME: gotn
+
+    steps:
+    - name: 📥 Checkout repository
+      uses: actions/checkout@v4
+
+    - name: 🐍 Setup Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.12"
+
+    - name: 📦 Install packaging tools
+      run: |
+        pip install --upgrade pip
+        pip install build twine
+
+    - name: 🛠️ Build the package
+      run: python -m build
+
+    - name: 🚀 Publish to PyPI
+      env:
+        TWINE_USERNAME: __token__
+        TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
+      run: twine upload dist/*
+
+    - name: 📤 Publish to GitHub Packages
+      env:
+        TWINE_USERNAME: ${{ github.actor }}
+        TWINE_PASSWORD: ${{ secrets.GP_TOKEN }}
+      run: |
+        twine upload \
+          --repository-url https://upload.pypi.org/legacy/ \
+          dist/*
+
+    - name: 🧪 Create clean virtualenv
+      run: |
+        python -m venv testenv
+        source testenv/bin/activate
+        pip install --upgrade pip
+
+    - name: 📥 Install from GitHub Packages
+      run: |
+        source testenv/bin/activate
+        pip install --extra-index-url https://pypi.org/simple $PACKAGE_NAME
+
+    - name: ✅ Run basic CLI test
+      run: |
+        source testenv/bin/activate
+        gotn --help
+
+    - name: 🧹 Uninstall package
+      run: |
+        source testenv/bin/activate
+        pip uninstall -y $PACKAGE_NAME
+
+    - name: 📦 Reinstall from PyPI
+      run: |
+        source testenv/bin/activate
+        pip install $PACKAGE_NAME
+
+    - name: 🔁 Final CLI test
+      run: |
+        source testenv/bin/activate
+        gotn list --limit 1
