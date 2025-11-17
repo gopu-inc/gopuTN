@@ -4,40 +4,47 @@
 
 <p align="center">
   <!-- Version PyPI -->
-  <a href="https://pypi.org/project/gotn/">
-    <img alt="PyPI Version" src="https://img.shields.io/pypi/v/gotn.svg">
+  <a href="https://pypi.org/project/gotn/"><img alt="PyPI Version" src="https://img.shields.io/pypi/v/gotn.svg">
   </a>
+<a href="https://github.com/gopu-inc/gopuTN/actions/workflows/ci.yml">
+  <img alt="Build Status" src="https://github.com/gopu-inc/gopuTN/actions/workflows/ci.yml/badge.svg?branch=main">
+</a>
+<a href="https://codecov.io/gh/gopu-inc/gopuTN">
+  <img alt="Coverage" src="https://codecov.io/gh/gopu-inc/gopuTN/branch/main/graph/badge.svg">
+</a>
+<a href="https://github.com/gopu-inc/gopuTN/blob/main/LICENSE">
+  <img alt="License" src="https://img.shields.io/github/license/gopu-inc/gopuTN.svg">
+</a>
+<a href="https://github.com/psf/black">
+  <img alt="Code style: black" src="https://img.shields.io/badge/code%20style-black-000000.svg">
+</a>
+<a href="https://hub.docker.com/r/ceoseshell/gotn">
+  <img alt="Docker Version" src="https://img.shields.io/docker/v/ceoseshell/gotn?sort=semver">
+</a>
+<!-- Docker Version avec logo -->
+<a href="https://hub.docker.com/r/ceoseshell/gotn">
+  <img alt="Docker Version" src="https://img.shields.io/docker/v/ceoseshell/gotn?sort=semver&logo=docker&logoColor=white">
+</a>
+<!-- Docker Pulls avec logo -->
+<a href="https://hub.docker.com/r/ceoseshell/gotn">
+  <img alt="Docker Pulls" src="https://img.shields.io/docker/pulls/ceoseshell/gotn?logo=docker&logoColor=white">
+</a>
+<!-- Docker Size avec logo -->
+<a href="https://hub.docker.com/r/ceoseshell/gotn">
+  <img alt="Docker Size" src="https://img.shields.io/docker/image-size/ceoseshell/gotn/latest?logo=docker&logoColor=white">
+</a>
+<a href="https://hub.docker.com/r/ceoseshell/gotn">
+  <img alt="Docker Pulls" src="https://img.shields.io/docker/pulls/ceoseshell/gotn?logo=docker&logoColor=white">
+</a>
+<a href="https://pypi.org/project/gotn/">
+  <img alt="PyPI Downloads" src="https://img.shields.io/pypi/dm/gotn?logo=pypi&logoColor=white">
+</a>
+<a href="https://ghcr.io/gopu-inc/ceoseshell/gotn">
+  <img alt="GHCR Downloads" src="https://img.shields.io/badge/dynamic/json?url=https://ghcr.io/v2/gopu-inc/ceoseshell/gotn/tags/list&label=GHCR%20Downloads&query=$.tags.length&logo=github&logoColor=white&color=blue">
+</a>
 
-  <!-- Build Status (GitHub Actions) -->
-  <a href="https://github.com/gopu-inc/gopuTN/actions/workflows/agent.yml">
-    <img alt="Build Status" src="https://github.com/gopu-inc/gopuTN/actions/workflows/agent.yml/badge.svg?branch=main">
-  </a>
 
-  <!-- Coverage (Codecov) -->
-  <a href="https://codecov.io/gh/gopu-inc/gopuTN">
-    <img alt="Coverage" src="https://app.codecov.io/github/gopu-inc/gopuTN/new.svg">
-  </a>
 
-  <!-- License -->
-  <a href="https://github.com/gopu-inc/gopuTN/blob/main/LICENSE">
-    <img alt="License" src="https://img.shields.io/github/license/gopu-inc/gopuTN.svg">
-  </a>
-
-  <!-- Code style: Black -->
-  <a href="https://github.com/psf/black">
-    <img alt="Code style: black" src="https://img.shields.io/badge/code%20style-black-000000.svg">
-  </a>
-
-  <!-- Docker Version -->
-  <a href="https://hub.docker.com/r/gopuinc/gotn">
-    <img alt="Docker Version" src="https://img.shields.io/docker/v/gopuinc/gotn?sort=semver">
-  </a>
-
-  <!-- Docker Avenir (prévu/futur) -->
-  <a href="https://hub.docker.com/r/gopuinc/gotn">
-    <img alt="Docker Avenir" src="https://img.shields.io/badge/docker-avenir-blue.svg">
-  </a>
-</p>
 
 
 <p align="center">
