@@ -27,6 +27,13 @@ jobs:
         run: |
           pip install bump2version build twine
 
+
+      - name: Push changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git push origin main --follow-tags
+          
       - name: Bump version
         id: bump
         run: |
@@ -34,12 +41,7 @@ jobs:
           VERSION=$(python setup.py --version)
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
-      # Étape 2 : Push commit + tag
-      - name: Push changes
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git push origin main --follow-tags
+      # Étape 2 : Push commit + ta
 
       # Étape 3 : Release GitHub
       - name: Create GitHub Release
