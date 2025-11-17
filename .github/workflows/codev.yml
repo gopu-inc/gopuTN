@@ -27,7 +27,7 @@ jobs:
           # outils de test + couverture + uploader
 
       - name: Run tests
-        run: pytest --cov=gotn  # adapte "ton_package" et dossier tests
+        run: pytest --cov=gotn tests/ # adapte "ton_package" et dossier tests
 
       - name: Upload results to Codecov
         uses: codecov/codecov-action@v5
