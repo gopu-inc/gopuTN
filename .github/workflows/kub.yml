@@ -1,0 +1,165 @@
+name: Continuous Delivery
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
+
+    steps:
+      # Étape 0 : Checkout
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Étape 1 : Configurer Git
+      - name: Configure Git identity
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+      # Étape 2 : Python + outils
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install tools
+        run: |
+          pip install bump2version build twine
+
+      # Étape 3 : Bump version
+      - name: Bump version
+        id: bump
+        run: |
+          bump2version patch
+          VERSION=$(python setup.py --version)
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Push changes
+        run: |
+          git push origin main --follow-tags
+
+      # Étape 4 : Release GitHub
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ steps.bump.outputs.version }}
+          name: Release v${{ steps.bump.outputs.version }}
+          body: |
+            🚀 Version automatique v${{ steps.bump.outputs.version }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # Étape 5 : Publier sur PyPI
+      - name: Build & Publish to PyPI
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
+        run: |
+          python -m build
+          twine upload dist/*
+
+      # Étape 6 : Docker Buildx
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build & Push Docker
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: Containerfile
+          push: true
+          tags: |
+            ceoseshell/gotn:v${{ steps.bump.outputs.version }}
+            ghcr.io/${{ github.repository_owner }}/gotn:v${{ steps.bump.outputs.version }}
+
+      # Étape 7 : Déploiement Kubernetes
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: 'v1.29.0'
+
+      - name: Deploy to Kubernetes
+        run: |
+          cat <<EOF > k8s-deployment.yaml
+          apiVersion: apps/v1
+          kind: Deployment
+          metadata:
+            name: gotn-deployment
+            labels:
+              app: gotn
+          spec:
+            replicas: 2
+            selector:
+              matchLabels:
+                app: gotn
+            template:
+              metadata:
+                labels:
+                  app: gotn
+              spec:
+                containers:
+                  - name: gotn
+                    image: ghcr.io/${{ github.repository_owner }}/gotn:v${{ steps.bump.outputs.version }}
+                    ports:
+                      - containerPort: 8000
+          EOF
+
+          cat <<EOF > k8s-service.yaml
+          apiVersion: v1
+          kind: Service
+          metadata:
+            name: gotn-service
+          spec:
+            selector:
+              app: gotn
+            ports:
+              - protocol: TCP
+                port: 80
+                targetPort: 8000
+            type: LoadBalancer
+          EOF
+
+          cat <<EOF > k8s-ingress.yaml
+          apiVersion: networking.k8s.io/v1
+          kind: Ingress
+          metadata:
+            name: gotn-ingress
+            annotations:
+              kubernetes.io/ingress.class: nginx
+          spec:
+            rules:
+              - host: gotn.example.com
+                http:
+                  paths:
+                    - path: /
+                      pathType: Prefix
+                      backend:
+                        service:
+                          name: gotn-service
+                          port:
+                            number: 80
+          EOF
+
+          kubectl apply -f k8s-deployment.yaml
+          kubectl apply -f k8s-service.yaml
+          kubectl apply -f k8s-ingress.yaml
