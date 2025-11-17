@@ -13,16 +13,25 @@ jobs:
         with:
           fetch-depth: 2
 
-      - name: Set up Node
-        uses: actions/setup-node@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'   # ou la version que tu utilises
 
       - name: Install dependencies
-        run: npm install
+        run: |
+          pip install --upgrade pip
+          pip install .            # installe ton package
+          pip install pytest pytest-cov codecov
+          pip install gotn
+          # outils de test + couverture + uploader
 
       - name: Run tests
-        run: npx jest --coverage
+        run: pytest --cov=gotn tests/   # adapte "ton_package" et dossier tests
 
       - name: Upload results to Codecov
         uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./coverage.xml    # pytest-cov génère ce fichier si tu ajoutes --cov-report xml
+          fail_ci_if_error: true
