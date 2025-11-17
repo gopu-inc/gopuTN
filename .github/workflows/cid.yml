@@ -1,0 +1,43 @@
+name: Publish gotn to PyPI
+
+on:
+  push:
+    branches:
+      - main
+  release:
+    types: [published]
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      # Étape 0 : Récupérer ton code
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Étape 1 : Installer Python
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      # Étape 2 : Installer les outils de build
+      - name: Install build tools
+        run: |
+          python -m pip install --upgrade pip
+          pip install build twine
+
+      # Étape 3 : Construire ton paquet
+      - name: Build package
+        run: python -m build
+
+      # Étape 4 : Publier sur PyPI
+      - name: Publish to PyPI
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
+        run: |
+          twine upload dist/*
