@@ -15,6 +15,7 @@
 <a href="https://github.com/gopu-inc/gopuTN/blob/main/LICENSE">
   <img alt="License" src="https://img.shields.io/github/license/gopu-inc/gopuTN.svg">
 </a>
+  
 <a href="https://github.com/psf/black">
   <img alt="Code style: black" src="https://img.shields.io/badge/code%20style-black-000000.svg">
 </a>
