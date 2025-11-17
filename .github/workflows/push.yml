@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
+      - name: Checkout code pod
         uses: actions/checkout@v4
 
       # Étape 1 : Installer Python et télécharger ton paquet PyPI
