@@ -41,7 +41,7 @@
   <img alt="PyPI Downloads" src="https://img.shields.io/pypi/dm/gotn?logo=pypi&logoColor=white">
 </a>
 <a href="https://ghcr.io/gopu-inc/gotn">
-  <img alt="GHCR Downloads" src="https://img.shields.io/badge/dynamic/json?url=https://ghcr.io/v2/gopu-inc/gotn/tags/list&label=GHCR%20Downloads&query=$.tags.length&logo=github&logoColor=white&color=blue">
+  <img alt="GHCR Downloads" src="https://img.shields.io/badge/dynamic/json?url=https://github.com/orgs/gopu-inc/packages/container/package/gotn/list&label=GHCR%20Downloads&query=$.tags.length&logo=github&logoColor=white&color=blue">
 </a>
 
 
