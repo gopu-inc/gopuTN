@@ -1,0 +1,44 @@
+name: Create Tag and Release
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write   # nécessaire pour créer des tags et des releases
+
+    steps:
+      # Étape 0 : Checkout du code
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Étape 1 : Déterminer la version (ici depuis pyproject.toml ou setup.py)
+      - name: Extract version
+        id: version
+        run: |
+          VERSION=$(python setup.py --version)
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      # Étape 2 : Créer un tag Git
+      - name: Create Git tag
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag v${{ steps.version.outputs.version }}
+          git push origin v${{ steps.version.outputs.version }}
+
+      # Étape 3 : Créer une release GitHub
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ steps.version.outputs.version }}
+          name: Release v${{ steps.version.outputs.version }}
+          body: |
+            🚀 Nouvelle version publiée automatiquement.
+            - Paquet gotn v${{ steps.version.outputs.version }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GP_TOKEN }}
