@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as f:
 
 setup(
     name="gotn",
-    version="0.2.11",
+    version="0.2.12",
     packages=find_packages(),
      install_requires=[
         "requests",
