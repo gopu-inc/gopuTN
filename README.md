@@ -15,7 +15,7 @@
 
   <!-- Coverage (Codecov) -->
   <a href="https://codecov.io/gh/gopu-inc/gopuTN">
-    <img alt="Coverage" src="https://codecov.io/gh/gopu-inc/gopuTN/branch/main/graph/badge.svg">
+    <img alt="Coverage" src="https://app.codecov.io/github/gopu-inc/gopuTN/new.svg">
   </a>
 
   <!-- License -->
