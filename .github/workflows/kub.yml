@@ -22,12 +22,13 @@ jobs:
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
       - name: Sync with remote
         run: |
-         git fetch origin main --tags
-         git merge origin/main
+          git fetch origin main --tags
+          git merge origin/main
 
-      # Étape 2 : Python + outils
+      # Étape 2 : Python + bump2version
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -35,9 +36,8 @@ jobs:
 
       - name: Install tools
         run: |
-          pip install bump2version build twine
+          pip install bump2version
 
-      # Étape 3 : Bump version
       - name: Bump version
         id: bump
         run: |
@@ -49,7 +49,7 @@ jobs:
         run: |
           git push origin main --follow-tags --force
 
-      # Étape 4 : Release GitHub
+      # Étape 3 : Release GitHub
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
         with:
@@ -60,43 +60,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      # Étape 5 : Publier sur PyPI
-      - name: Build & Publish to PyPI
-        env:
-          TWINE_USERNAME: __token__
-          TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
-        run: |
-          python -m build
-          twine upload dist/*
-
-      # Étape 6 : Docker Buildx
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Log in to Docker Hub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-      - name: Log in to GHCR
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Build & Push Docker
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          file: Containerfile
-          push: true
-          tags: |
-            ceoseshell/gotn:v${{ steps.bump.outputs.version }}
-            ghcr.io/${{ github.repository_owner }}/gotn:v${{ steps.bump.outputs.version }}
-
-      # Étape 7 : Déploiement Kubernetes
+      # Étape 4 : Déploiement Kubernetes
       - name: Set up kubectl
         uses: azure/setup-kubectl@v3
         with:
@@ -123,7 +87,7 @@ jobs:
               spec:
                 containers:
                   - name: gotn
-                    image: ghcr.io/${{ github.repository_owner }}/gotn:v${{ steps.bump.outputs.version }}
+                    image: gotn:${{ steps.bump.outputs.version }}
                     ports:
                       - containerPort: 8000
           EOF
