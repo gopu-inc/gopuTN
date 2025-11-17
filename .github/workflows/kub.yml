@@ -47,7 +47,7 @@ jobs:
 
       - name: Push changes
         run: |
-          git push origin main --follow-tags
+          git push --force origin main --follow-tags
 
       # Étape 4 : Release GitHub
       - name: Create GitHub Release
