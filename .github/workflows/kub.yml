@@ -24,7 +24,7 @@ jobs:
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
       - name: Sync with remote
         run: |
-         git fetch origin main
+         git fetch origin main --tags
          git merge origin/main
 
       # Étape 2 : Python + outils
