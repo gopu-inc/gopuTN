@@ -1,0 +1,55 @@
+name: Build and Publish gotn Image
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Étape 1 : Installer Python et télécharger ton paquet PyPI
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install gotn from PyPI
+        run: |
+          pip install --upgrade pip
+          pip install gotn --extra-index-url https://__token__:${{ secrets.PYPI_TOKEN }}@pypi.org/simple
+
+      # Étape 2 : Configurer Docker Buildx
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # Étape 3 : Login Docker Hub
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      # Étape 4 : Login GHCR
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GB_TOKEN }}
+
+      # Étape 5 : Build et push l’image vers Docker Hub et GHCR
+      - name: Build and push image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: Containerfile   # ou Dockerfile si tu préfères
+          push: true
+          tags: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/gotn:latest
+            ghcr.io/${{ github.repository_owner }}/gotn:latest
