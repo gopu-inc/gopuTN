@@ -1,4 +1,4 @@
-name: Create Tag and Release
+name: Bump Version, Tag & Release
 
 on:
   push:
@@ -9,36 +9,46 @@ jobs:
   release:
     runs-on: ubuntu-latest
     permissions:
-      contents: write   # nécessaire pour créer des tags et des releases
+      contents: write   # nécessaire pour créer tags et releases
 
     steps:
       # Étape 0 : Checkout du code
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # Étape 1 : Déterminer la version (ici depuis pyproject.toml ou setup.py)
-      - name: Extract version
-        id: version
+      # Étape 1 : Installer Python et bump2version
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install bump2version
         run: |
+          pip install bump2version
+
+      # Étape 2 : Bump automatique de la version (patch par défaut)
+      - name: Bump version
+        id: bump
+        run: |
+          bump2version patch --allow-dirty
           VERSION=$(python setup.py --version)
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
-      # Étape 2 : Créer un tag Git
-      - name: Create Git tag
+      # Étape 3 : Push du commit et du tag
+      - name: Push changes
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git tag v${{ steps.version.outputs.version }}
-          git push origin v${{ steps.version.outputs.version }}
+          git push origin main --follow-tags
 
-      # Étape 3 : Créer une release GitHub
+      # Étape 4 : Créer une release GitHub
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
         with:
-          tag_name: v${{ steps.version.outputs.version }}
-          name: Release v${{ steps.version.outputs.version }}
+          tag_name: v${{ steps.bump.outputs.version }}
+          name: Release v${{ steps.bump.outputs.version }}
           body: |
             🚀 Nouvelle version publiée automatiquement.
-            - Paquet gotn v${{ steps.version.outputs.version }}
+            - Paquet gotn v${{ steps.bump.outputs.version }}
         env:
           GITHUB_TOKEN: ${{ secrets.GP_TOKEN }}
