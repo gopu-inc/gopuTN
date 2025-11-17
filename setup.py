@@ -7,6 +7,10 @@ setup(
     name="gotn",
     version="0.2.5",
     packages=find_packages(),
+     install_requires=[
+        "requests",
+        "argparse"
+     ],
     entry_points={
         "console_scripts": [
             "gotn=gotn.cli:main",
