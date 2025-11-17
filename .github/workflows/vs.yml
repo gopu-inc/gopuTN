@@ -37,8 +37,6 @@ jobs:
       # Étape 2 : Push commit + tag
       - name: Push changes
         run: |
-          git add .
-          git commit -m "initial commit: ajout de gotn"
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git push origin main --follow-tags
