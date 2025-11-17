@@ -1,5 +1,6 @@
 FROM python:3.12-slim
 
+
 WORKDIR /app
 
 # Copier ton code serveur (adapter le chemin si nécessaire)
