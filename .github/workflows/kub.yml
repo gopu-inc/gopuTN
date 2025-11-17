@@ -8,64 +8,26 @@ on:
 jobs:
   release:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      packages: write
 
     steps:
       # Étape 0 : Checkout
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # Étape 1 : Configurer Git
-      - name: Configure Git identity
+      # Étape 1 : Installer k3s
+      - name: Install k3s
         run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          curl -sfL https://get.k3s.io | sh -
+          sudo cp /etc/rancher/k3s/k3s.yaml $HOME/.kube/config
+          sudo chown $(id -u):$(id -g) $HOME/.kube/config
 
-      - name: Sync with remote
+      # Étape 2 : Vérifier le cluster
+      - name: Check cluster
         run: |
-          git fetch origin main --tags
-          git merge origin/main
+          kubectl cluster-info
+          kubectl get nodes
 
-      # Étape 2 : Python + bump2version
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-
-      - name: Install tools
-        run: |
-          pip install bump2version
-
-      - name: Bump version
-        id: bump
-        run: |
-          bump2version patch
-          VERSION=$(python setup.py --version)
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-
-      - name: Push changes
-        run: |
-          git push origin main --follow-tags --force
-
-      # Étape 3 : Release GitHub
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v1
-        with:
-          tag_name: v${{ steps.bump.outputs.version }}
-          name: Release v${{ steps.bump.outputs.version }}
-          body: |
-            🚀 Version automatique v${{ steps.bump.outputs.version }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      # Étape 4 : Déploiement Kubernetes
-      - name: Set up kubectl
-        uses: azure/setup-kubectl@v3
-        with:
-          version: 'v1.29.0'
-
+      # Étape 3 : Déploiement Kubernetes
       - name: Deploy to Kubernetes
         run: |
           cat <<EOF > k8s-deployment.yaml
@@ -87,7 +49,7 @@ jobs:
               spec:
                 containers:
                   - name: gotn
-                    image: gotn:${{ steps.bump.outputs.version }}
+                    image: gotn:${{ github.sha }}
                     ports:
                       - containerPort: 8000
           EOF
@@ -107,27 +69,5 @@ jobs:
             type: LoadBalancer
           EOF
 
-          cat <<EOF > k8s-ingress.yaml
-          apiVersion: networking.k8s.io/v1
-          kind: Ingress
-          metadata:
-            name: gotn-ingress
-            annotations:
-              kubernetes.io/ingress.class: nginx
-          spec:
-            rules:
-              - host: gotn.example.com
-                http:
-                  paths:
-                    - path: /
-                      pathType: Prefix
-                      backend:
-                        service:
-                          name: gotn-service
-                          port:
-                            number: 80
-          EOF
-
           kubectl apply -f k8s-deployment.yaml
           kubectl apply -f k8s-service.yaml
-          kubectl apply -f k8s-ingress.yaml
