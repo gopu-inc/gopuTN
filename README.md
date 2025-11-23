@@ -41,7 +41,7 @@
   
   <!-- GitHub Container Registry -->
   <a href="https://ghcr.io/gopu-inc/gotn">
-    <img alt="GHCR Version" src="https://img.shields.io/badge/GHCR-v0.3.3-blue?logo=github&logoColor=white">
+    <img alt="GHCR Version" src="https://img.shields.io/badge/GHCR-v0.3.7-blue?logo=github&logoColor=white">
   </a>
   <a href="https://ghcr.io/gopu-inc/gotn">
     <img alt="GHCR Pulls" src="https://img.shields.io/badge/dynamic/json?logo=github&logoColor=white&label=GHCR%20Pulls&query=$.pull_count&url=https://ghcr.io/v2/gopu-inc/gotn/tags/list">
