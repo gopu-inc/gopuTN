@@ -131,10 +131,10 @@ Pour une installation isolée et portable, vous pouvez utiliser notre image Dock
 
 ```bash
 # Pull de l'image
-docker pull goputn/gotn:latest
+docker pull ceoseshell/gotn:latest
 
 # Exécuter une commande
-docker run --rm -it -v ~/.gotnrc:/root/.gotnrc goputn/gotn:latest list --mine
+docker run --rm -it -v ~/.gotnrc:/root/.gotnrc ceoseshell/gotn:latest list --mine
 ```
 *Note : Le montage du volume `~/.gotnrc` est crucial pour conserver votre authentification entre les exécutions.*
 
