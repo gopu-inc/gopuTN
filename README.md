@@ -41,7 +41,7 @@
   <img alt="PyPI Downloads" src="https://img.shields.io/pypi/dm/gotn?logo=pypi&logoColor=white">
 </a>
 <a href="https://ghcr.io/gopu-inc/gotn">
-  <img alt="GHCR Version" src="https://img.shields.io/docker/v/gopu-inc/gotn?logo=github&logoColor=white&label=GHCR">
+  <img alt="GHCR Version" src="https://github.com/orgs/gopu-inc/packages/container/gotn/586038926?tag=v0.3.3?logo=github&logoColor=white&label=GHCR">
 </a>
 <a href="https://ghcr.io/gopu-inc/gotn">
   <img alt="GHCR Pulls" src="https://img.shields.io/docker/pulls/gopu-inc/gotn?logo=github&logoColor=white&label=GHCR%20Pulls">
